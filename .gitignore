@@ -1,0 +1,64 @@
+# =========================
+# Node / Next.js
+# =========================
+node_modules/
+.next/
+out/
+dist/
+build/
+
+# .env & local config
+.env
+.env.local
+.env.*.local
+
+# =========================
+# Tauri (Rust)
+# =========================
+/src-tauri/target/
+/src-tauri/Cargo.lock
+/src-tauri/.cargo/
+**/*.rs.bk
+
+# Tauri dev artifacts
+/src-tauri/tauri.conf.json.backup
+
+# Tauri build output
+/src-tauri/bundle/
+*.log
+
+# =========================
+# OS generated
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.code-workspace
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# =========================
+# Misc
+# =========================
+*.local
+*.lock

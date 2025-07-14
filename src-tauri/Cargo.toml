@@ -1,0 +1,31 @@
+[package]
+name = "hbfu-plus"
+version = "0.1.0"
+description = "HBFU Plus"
+authors = ["Alex"]
+edition = "2024"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "hbfu_plus_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+reqwest = { version = "0.12.22", features = ["cookies", "json"] }
+reqwest_cookie_store = { version = "0.8.0", features = ["serde"] }
+cookie_store = "0.21.1"
+regex = "1.11.1"
+aes = "0.8.4"
+base64 = "0.22.1"
+tokio = { version = "1.46.1", features = ["sync"] }
