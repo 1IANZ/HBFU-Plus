@@ -20,7 +20,7 @@ export default function SimpleProfileCard() {
   };
 
   return (
-    <div className='justify-center flex items-center w-[calc(100vw-200px)] h-[calc(100vh-100px)]'>
+    <div className='justify-center flex items-center w-[calc(100vw-140px)] h-[calc(100vh-100px)]'>
       <TooltipProvider>
         <Card className='w-full max-w-xs mx-auto text-center'>
           <CardHeader>
