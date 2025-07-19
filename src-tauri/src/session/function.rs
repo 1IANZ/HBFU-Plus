@@ -19,14 +19,17 @@ pub async fn manual_login(
     oa_password: String,
 ) -> Result<String, String> {
     let session = state.session.lock().await;
-    session
+    let result = session
         .complete_login(&username, &vpn_password, &oa_password)
-        .await
-        .map_err(|e| e.to_string())?;
+        .await;
 
-    session.save_cookies().map_err(|e| e.to_string())?;
-
-    Ok("登录成功".into())
+    match result {
+        Ok(text) => {
+            session.save_cookies().map_err(|e| e.to_string())?;
+            Ok(text)
+        }
+        Err(e) => Err(e.to_string()),
+    }
 }
 //学生信息
 #[tauri::command]

@@ -137,7 +137,7 @@ impl HttpSession {
         username: &str,
         password: &str,
         flow_execution_key: &str,
-    ) -> Result<(), SessionError> {
+    ) -> Result<bool, SessionError> {
         let encrypted_password = aes_cbc_encrypt(password)
             .map_err(|_| SessionError::Custom("密码加密失败".to_string()))?;
         let mut form_data = HashMap::new();
@@ -148,19 +148,17 @@ impl HttpSession {
         form_data.insert("rememberMe", "false");
         form_data.insert("domain", "oa-443.v.hbfu.edu.cn");
 
-        self.client
+        let res = self
+            .client
             .post("https://oa-443.v.hbfu.edu.cn/backstage/cas/login")
             .form(&form_data)
             .send()
-            .await
-            .map_err(|_| SessionError::Custom("登录请求失败".to_string()))?
-            .error_for_status()
-            .map_err(|_| SessionError::AuthFailed("登录失败，请检查账号密码".to_string()))?;
-
-        Ok(())
+            .await?;
+        let res = res.text().await?.contains("修改密码");
+        Ok(res)
     }
 
-    pub async fn access_jwxt(&self) -> Result<reqwest::Response, SessionError> {
+    pub async fn access_jwxt(&self) -> Result<(), SessionError> {
         let mut headers = HeaderMap::new();
         headers.insert("Content-Type", "text/html;charset=utf-8".parse().unwrap());
         headers.insert("Vary", "Accept-Encoding".parse().unwrap());
@@ -170,11 +168,11 @@ impl HttpSession {
             .get("https://jw.v.hbfu.edu.cn/")
             .headers(headers)
             .send()
-            .await
-            .map_err(|_| SessionError::Custom("访问教务系统失败".to_string()))
+            .await?;
+        Ok(())
     }
 
-    async fn login_jwxt(&self, username: &str, password: &str) -> Result<String, SessionError> {
+    async fn login_jwxt(&self, username: &str, password: &str) -> Result<bool, SessionError> {
         let encoded_username = encode_inp(username);
         let encoded_password = encode_inp(password);
         let encoded_data = format!("{}%%%{}", encoded_username, encoded_password);
@@ -185,20 +183,10 @@ impl HttpSession {
             .post("https://jw.v.hbfu.edu.cn/jsxsd/xk/LoginToXk")
             .form(&[("encoded", &encoded_data)])
             .send()
-            .await
-            .map_err(|_| SessionError::Custom("教务系统登录请求失败".to_string()))?;
+            .await?;
 
-        let text = response
-            .text()
-            .await
-            .map_err(|_| SessionError::Custom("读取教务系统响应失败".to_string()))?;
-
-        if text.contains("用户名或密码错误") {
-            return Err(SessionError::AuthFailed(
-                "教务系统账号或密码错误".to_string(),
-            ));
-        }
-        Ok(text)
+        let res = response.text().await?.contains("学生个人中心");
+        Ok(res)
     }
 
     pub async fn complete_login(
@@ -207,21 +195,18 @@ impl HttpSession {
         vpn_password: &str,
         oa_password: &str,
     ) -> Result<String, SessionError> {
-        let flow_key = self
-            .get_flow_execution_key()
-            .await
-            .map_err(|_| SessionError::Custom("获取vpn令牌失败".to_string()))?;
-        self.login_vpn(username, vpn_password, &flow_key)
-            .await
-            .map_err(|_| SessionError::Custom("vpn连接失败".to_string()))?;
+        let flow_key = self.get_flow_execution_key().await?;
+        let vpn_login_result = self.login_vpn(username, vpn_password, &flow_key).await?;
+        if vpn_login_result == false {
+            return Ok("VPN登录失败,请检查账号密码".to_string());
+        }
 
-        self.access_jwxt()
-            .await
-            .map_err(|_| SessionError::Custom("访问教务系统失败".to_string()))?;
+        self.access_jwxt().await?;
 
-        self.login_jwxt(username, oa_password)
-            .await
-            .map_err(|_| SessionError::Custom("教务系统登录失败".to_string()))?;
+        let jwxt_login_result = self.login_jwxt(username, oa_password).await?;
+        if jwxt_login_result == false {
+            return Ok("教务系统登录失败,请检查账号密码".to_string());
+        }
 
         self.save_cookies()
             .map_err(|_| SessionError::Custom("保存cookie失败".to_string()))?;
@@ -242,12 +227,8 @@ impl HttpSession {
     }
 
     pub async fn fetch(&self, url: &str) -> Result<String, String> {
-        let response = self
-            .client
-            .get(url)
-            .send()
-            .await
-            .map_err(|e| e.to_string().to_string())?;
-        Ok(response.text().await.unwrap())
+        let response = self.client.get(url).send().await.unwrap();
+        let text = response.text().await.unwrap();
+        Ok(text)
     }
 }

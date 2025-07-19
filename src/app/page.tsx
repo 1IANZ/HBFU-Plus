@@ -67,16 +67,14 @@ export default function Home() {
         oaPassword: password,
       });
     }
-
+    console.log(text);
     if (text === '登录成功') {
       if (remember) {
         handleRememberChange(true);
       }
-      toast('登录成功');
       router.push('/main/info');
-    } else {
-      toast(text);
     }
+    toast(text);
     setLoading(false);
   };
   return (
