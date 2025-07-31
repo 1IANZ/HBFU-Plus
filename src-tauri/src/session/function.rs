@@ -121,7 +121,6 @@ pub async fn get_zxjh(state: tauri::State<'_, AppState>) -> Result<String, Strin
         .await
         .map_err(|e| e.to_string())?;
     Ok(response)
-    //https://jw.v.hbfu.edu.cn/jsxsd/pyfa/cxxf07List
 }
 //第二课堂
 #[tauri::command]
