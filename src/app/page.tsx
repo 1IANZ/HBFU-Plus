@@ -71,7 +71,7 @@ export default function Home() {
 
   const handleLogin = async () => {
     if (!captchaText) {
-      toast('请输入或识别验证码');
+      toast('请输入验证码');
       return;
     }
 
@@ -166,34 +166,30 @@ export default function Home() {
               />
             </div>
 
-            {/* ====== 验证码区块 ====== */}
-            <div className="grid gap-2">
-              <Label htmlFor="captcha">验证码</Label>
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  {captchaBase64 ? (
-                    <img
-                      src={captchaBase64}
-                      alt="captcha"
-                      className="w-64 h-12 object-contain cursor-pointer border rounded"
-                      onClick={fetchCaptcha}
-                    />
-                  ) : (
-                    <div className="w-32 h-12 bg-gray-100 flex items-center justify-center border rounded">
-                      加载中…
-                    </div>
-                  )}
-                </div>
-                <Input
-                  id="captcha"
-                  type="text"
-                  placeholder="输入验证码"
-                  value={captchaText}
-                  onChange={(e) => setCaptchaText(e.target.value)}
-                />
+
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                {captchaBase64 ? (
+                  <img
+                    src={captchaBase64}
+                    alt="captcha"
+                    className="w-64 h-12 object-contain cursor-pointer border rounded"
+                    onClick={fetchCaptcha}
+                  />
+                ) : (
+                  <div className="w-32 h-12 bg-gray-100 flex items-center justify-center border rounded">
+                    加载中…
+                  </div>
+                )}
               </div>
+              <Input
+                id="captcha"
+                type="text"
+                placeholder="输入验证码"
+                value={captchaText}
+                onChange={(e) => setCaptchaText(e.target.value)}
+              />
             </div>
-            {/* ====== 验证码区块结束 ====== */}
           </div>
         </form>
       </CardContent>
