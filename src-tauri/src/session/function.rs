@@ -1,4 +1,6 @@
 use crate::AppState;
+use base64::Engine;
+use base64::engine::general_purpose;
 use std::collections::HashMap;
 use tauri::State;
 
@@ -17,10 +19,11 @@ pub async fn manual_login(
     username: String,
     vpn_password: String,
     oa_password: String,
+    captcha: String,
 ) -> Result<String, String> {
     let session = state.session.lock().await;
     let result = session
-        .complete_login(&username, &vpn_password, &oa_password)
+        .complete_login(&username, &vpn_password, &oa_password, &captcha)
         .await;
 
     match result {
@@ -148,6 +151,7 @@ pub async fn get_dekt_detail(
         .map_err(|e| e.to_string())?;
     Ok(response)
 }
+//课表
 #[tauri::command]
 pub async fn get_xskb(state: tauri::State<'_, AppState>, semester: &str) -> Result<String, String> {
     let session = state.session.lock().await;
@@ -193,4 +197,11 @@ pub async fn download_xskb(
     std::fs::write(&file_path, bytes).map_err(|e| e.to_string())?;
 
     Ok(format!("导出成功！文件已保存到：{}", file_path.display()))
+}
+#[tauri::command]
+pub async fn get_captcha_base64(state: tauri::State<'_, AppState>) -> Result<String, String> {
+    let session = state.session.lock().await;
+    let bytes = session.get_captcha().await.map_err(|e| e.to_string())?;
+    let base64_img = general_purpose::STANDARD.encode(&bytes);
+    Ok(format!("data:image/jpeg;base64,{}", base64_img))
 }

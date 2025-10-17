@@ -112,6 +112,28 @@ impl HttpSession {
 }
 
 impl HttpSession {
+    pub async fn get_captcha(&self) -> Result<Vec<u8>, SessionError> {
+        let r = rand::random::<f64>();
+        let url = format!(
+            "https://oa-443.v.hbfu.edu.cn/backstage/cas/captcha.jpg?r={}",
+            r
+        );
+        let mut headers = HeaderMap::new();
+        headers.insert("Content-Type", "text/html;charset=utf-8".parse().unwrap());
+        headers.insert("Vary", "Accept-Encoding".parse().unwrap());
+        headers.insert("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36".parse().unwrap());
+        let resp = self.client.get(&url).headers(headers).send().await?;
+        let status = resp.status();
+        if !status.is_success() {
+            return Err(SessionError::Custom(format!(
+                "获取验证码失败: HTTP {}",
+                status
+            )));
+        }
+        let bytes = resp.bytes().await?;
+        Ok(bytes.to_vec())
+    }
+
     pub async fn get_flow_execution_key(&self) -> Result<String, SessionError> {
         let response = self
             .client
@@ -137,6 +159,7 @@ impl HttpSession {
         username: &str,
         password: &str,
         flow_execution_key: &str,
+        captcha: &str,
     ) -> Result<bool, SessionError> {
         let encrypted_password = aes_cbc_encrypt(password)
             .map_err(|_| SessionError::Custom("密码加密失败".to_string()))?;
@@ -145,6 +168,7 @@ impl HttpSession {
         form_data.insert("password", &encrypted_password);
         form_data.insert("execution", flow_execution_key);
         form_data.insert("_eventId", "submit");
+        form_data.insert("captcha", captcha);
         form_data.insert("rememberMe", "false");
         form_data.insert("domain", "oa-443.v.hbfu.edu.cn");
 
@@ -194,18 +218,21 @@ impl HttpSession {
         username: &str,
         vpn_password: &str,
         oa_password: &str,
+        captcha: &str,
     ) -> Result<String, SessionError> {
         let flow_key = self.get_flow_execution_key().await?;
-        let vpn_login_result = self.login_vpn(username, vpn_password, &flow_key).await?;
+        let vpn_login_result = self
+            .login_vpn(username, vpn_password, &flow_key, captcha)
+            .await?;
         if vpn_login_result == false {
-            return Ok("VPN登录失败,请检查账号密码".to_string());
+            return Ok("VPN登录失败".to_string());
         }
 
         self.access_jwxt().await?;
 
         let jwxt_login_result = self.login_jwxt(username, oa_password).await?;
         if jwxt_login_result == false {
-            return Ok("教务系统登录失败,请检查账号密码".to_string());
+            return Ok("教务系统登录失败".to_string());
         }
 
         self.save_cookies()
