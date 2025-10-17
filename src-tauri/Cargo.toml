@@ -1,6 +1,6 @@
 [package]
 name = "hbfu-plus"
-version = "0.1.0"
+version = "0.1.1"
 description = "HBFU Plus"
 authors = ["Alex"]
 edition = "2024"

@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { invoke } from '@tauri-apps/api/core';
 import { UserIcon, GlobeLock, LockKeyholeIcon } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 
 export default function Home() {
   const [username, setUsername] = useState<string>('');
@@ -105,7 +106,6 @@ export default function Home() {
       }
       toast(text);
     } catch (err) {
-      console.error('登录失败', err);
       toast.error?.('登录失败，请检查控制台');
     } finally {
       setLoading(false);
@@ -178,7 +178,7 @@ export default function Home() {
                   />
                 ) : (
                   <div className="w-32 h-12 bg-gray-100 flex items-center justify-center border rounded">
-                    加载中…
+                    <Spinner />
                   </div>
                 )}
               </div>
@@ -220,7 +220,7 @@ export default function Home() {
           onClick={handleLogin}
           disabled={loading}
         >
-          {loading ? '登录中...' : '登录'}
+          {loading ? <Spinner /> : '登录'}
         </Button>
       </CardFooter>
     </Card >
