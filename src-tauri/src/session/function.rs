@@ -201,6 +201,7 @@ pub async fn download_xskb(
 pub async fn get_captcha_base64(state: tauri::State<'_, AppState>) -> Result<String, String> {
     let session = state.session.lock().await;
     let bytes = session.get_captcha().await.map_err(|e| e.to_string())?;
+    session.save_cookies().map_err(|e| e.to_string())?;
     let base64_img = general_purpose::STANDARD.encode(&bytes);
     Ok(format!("data:image/jpeg;base64,{}", base64_img))
 }

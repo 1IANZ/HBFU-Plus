@@ -28,10 +28,10 @@ export function DEKTList({
   return (
     <>
       <TooltipProvider>
-        <div className='flex flex-col h-[calc(100vh-80px)] px-4 py-4'>
+        <div className="flex flex-col h-[calc(100vh-65px)] px-4 py-4 gap-4">
           {/* Summary */}
-          <div className='w-full overflow-x-auto overflow-y-auto max-h-[150px] rounded-md border mb-4'>
-            <Table className='w-full min-w-[400px]'>
+          <div className="w-full max-h-[150px] overflow-auto rounded-md border">
+            <Table className="w-full min-w-[400px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>分类</TableHead>
@@ -48,22 +48,25 @@ export function DEKTList({
               </TableBody>
             </Table>
           </div>
+
           {/* DEKT Card List */}
-          <div className='grid gap-4 grid-cols-[repeat(auto-fit,minmax(160px,1fr))]'>
-            {data.map((item) => (
-              <DektDetailDialog
-                key={item.id}
-                operationId={item.operationId}
-                trigger={
-                  <Card className='p-4 flex flex-col items-start hover:shadow-lg transition cursor-pointer'>
-                    <h4 className='font-medium line-clamp-2 min-h-[3rem]'>
-                      {item.activityName}
-                    </h4>
-                    <p className='text-xl font-bold mt-2'>{item.credit} 学分</p>
-                  </Card>
-                }
-              />
-            ))}
+          <div className="flex-1 overflow-auto">
+            <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(160px,1fr))]">
+              {data.map((item) => (
+                <DektDetailDialog
+                  key={item.id}
+                  operationId={item.operationId}
+                  trigger={
+                    <Card className="p-4 flex flex-col items-start hover:shadow-lg transition cursor-pointer">
+                      <h4 className="font-medium line-clamp-2 min-h-[3rem]">
+                        {item.activityName || item.subCategory}
+                      </h4>
+                      <p className="text-xl font-bold mt-2">{item.credit} 学分</p>
+                    </Card>
+                  }
+                />
+              ))}
+            </div>
           </div>
         </div>
       </TooltipProvider>

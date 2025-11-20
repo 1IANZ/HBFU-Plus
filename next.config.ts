@@ -3,6 +3,7 @@ const isProd = 'production';
 const internalHost = 'localhost';
 
 const nextConfig = {
+  reactCompiler: true,
   output: 'export',
   images: {
     unoptimized: true,
