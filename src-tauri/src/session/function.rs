@@ -1,8 +1,15 @@
 use crate::AppState;
 use base64::Engine;
 use base64::engine::general_purpose;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tauri::State;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CaptchaAndFlowKey {
+    pub captcha_base64: String,
+    pub flow_execution_key: String,
+}
 
 #[tauri::command]
 pub async fn check_cookie_and_state(state: State<'_, AppState>) -> Result<bool, String> {
@@ -20,10 +27,17 @@ pub async fn manual_login(
     vpn_password: String,
     oa_password: String,
     captcha: String,
+    flow_execution_key: String,
 ) -> Result<String, String> {
     let session = state.session.lock().await;
     let result = session
-        .complete_login(&username, &vpn_password, &oa_password, &captcha)
+        .complete_login(
+            &username,
+            &vpn_password,
+            &oa_password,
+            &captcha,
+            &flow_execution_key,
+        )
         .await;
 
     match result {
@@ -198,10 +212,22 @@ pub async fn download_xskb(
     Ok(format!("导出成功！文件已保存到：{}", file_path.display()))
 }
 #[tauri::command]
-pub async fn get_captcha_base64(state: tauri::State<'_, AppState>) -> Result<String, String> {
+pub async fn get_captcha_and_flow_key(
+    state: tauri::State<'_, AppState>,
+) -> Result<CaptchaAndFlowKey, String> {
     let session = state.session.lock().await;
+
+    let flow_execution_key = session
+        .get_flow_execution_key()
+        .await
+        .map_err(|e| e.to_string())?;
+
     let bytes = session.get_captcha().await.map_err(|e| e.to_string())?;
     session.save_cookies().map_err(|e| e.to_string())?;
-    let base64_img = general_purpose::STANDARD.encode(&bytes);
-    Ok(format!("data:image/jpeg;base64,{}", base64_img))
+    let captcha_base64_img = general_purpose::STANDARD.encode(&bytes);
+
+    Ok(CaptchaAndFlowKey {
+        captcha_base64: format!("data:image/jpeg;base64,{}", captcha_base64_img),
+        flow_execution_key,
+    })
 }

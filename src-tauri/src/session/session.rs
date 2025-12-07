@@ -219,10 +219,10 @@ impl HttpSession {
         vpn_password: &str,
         oa_password: &str,
         captcha: &str,
+        flow_execution_key: &str,
     ) -> Result<String, SessionError> {
-        let flow_key = self.get_flow_execution_key().await?;
         let vpn_login_result = self
-            .login_vpn(username, vpn_password, &flow_key, captcha)
+            .login_vpn(username, vpn_password, flow_execution_key, captcha)
             .await?;
         if vpn_login_result == false {
             return Ok("VPN登录失败".to_string());

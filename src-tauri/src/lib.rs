@@ -43,7 +43,7 @@ pub fn run() {
             get_dekt_detail,
             get_xskb,
             download_xskb,
-            get_captcha_base64,
+            get_captcha_and_flow_key,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
